@@ -42,19 +42,19 @@ for command in commands:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.connect((HOST, PORT))
             s.sendall(request)
-            data = s.recv(8096)
+            data = s.recv(8196)
             s.close()
+
             decoded_data = data.decode('ascii')
+            info = decoded_data.split('\r\n\r\n')
+            response = info[0]
+            print(response, '\n')
 
-        info = decoded_data.split('\r\n\r\n')
-        response = info[0]
-        print(response, '\n')
-
-        if args[0] == "GET":
-            received_file = info[1]
-            file = open(file_name, 'w')
-            file.write(received_file)
-            file.close()
-            print(received_file)
+            if args[0] == "GET":
+                received_file = info[1]
+                file = open(file_name, 'w')
+                file.write(received_file)
+                file.close()
+                print(received_file)
 
     print("=========================================================================")

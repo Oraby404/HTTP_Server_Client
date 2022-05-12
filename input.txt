@@ -1,2 +1,4 @@
 GET /hypertext/WWW/TheProject.html info.cern.ch 80
-GET data.txt 127.0.0.1 65432
+GET data1.txt 127.0.0.1 65432
+GET data2.txt 127.0.0.1 65432
+GET data3.txt 127.0.0.1 65432
