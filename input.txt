@@ -1,0 +1,2 @@
+GET /hypertext/WWW/TheProject.html info.cern.ch 80
+GET data.txt 127.0.0.1 65432
