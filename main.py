@@ -6,9 +6,12 @@ from _thread import *
 def ThreadedClient(cnx):
     cnx.settimeout(15)
     while True:
-        
+
         data = cnx.recv(2048)  # receive request
-        start_new_thread(ThreadedClient, (cnx,))
+        try:
+            start_new_thread(ThreadedClient, (cnx,))
+        except:
+            pass
         msg = data.decode('ascii')
         msg = msg.split('\r\n')  # split header and filter empty strings
         msg = list(filter(None, msg))
