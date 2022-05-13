@@ -6,7 +6,9 @@ from _thread import *
 def ThreadedClient(cnx):
     cnx.settimeout(15)
     while True:
+        
         data = cnx.recv(2048)  # receive request
+        start_new_thread(ThreadedClient, (cnx,))
         msg = data.decode('ascii')
         msg = msg.split('\r\n')  # split header and filter empty strings
         msg = list(filter(None, msg))
@@ -20,7 +22,7 @@ def ThreadedClient(cnx):
                 version = msg[0].split()[-1]  # get version
                 entries = os.listdir()  # entries in dir
                 search = entries.count(filename)  # search for filename
-                if search:  #if file is on server
+                if search:  # if file is on server
                     f = open(filename, "rb")
                     file = f.read().decode('ascii')
                     f.close()
