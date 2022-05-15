@@ -1,9 +1,29 @@
 import socket
-import os.path
+import os
+import time
+
+# read list of commands
 
 file = open('input.txt', 'r')
 commands = file.readlines()
 file.close()
+
+# load cache from log file
+
+cache = set()
+
+file = open('cache.txt', 'r')
+cache_list = file.readlines()
+file.close()
+
+for line in cache_list:
+    line = line.split('\n')
+    if os.path.exists(line[0]):
+        cache.add(line[0])
+
+print(cache, '\n')
+
+# process each command in the input file
 
 for command in commands:
     args = command.split(' ')
@@ -19,15 +39,15 @@ for command in commands:
     path = url.split('/')
     file_name = path[len(path) - 1]
 
-    file_exists = os.path.exists(file_name)
+    cache_file_name = str(HOST + '_' + file_name)
+    file_exists = cache_file_name in cache
 
-    if file_exists:  # found in cache
-        if args[0] == "GET":
-            print("File Found On Local Cache!\n")
-            file = open(file_name, 'r')
-            file_data = file.read()
-            file.close()
-            print(file_data)
+    if file_exists and args[0] == "GET":  # found in cache
+        print("File Found On Local Cache!\n")
+        file = open(cache_file_name, 'rb')
+        file_data = file.read()
+        file.close()
+        print(cache_file_name, '\n')
 
     else:  # contact server
 
@@ -37,24 +57,42 @@ for command in commands:
             file = open(file_name, 'r')
             file_data = file.read()
             file.close()
-            request = "{} HTTP/1.1\r\nHost: {}\r\n\r\n{}".format(args[0], HOST, file_data).encode('ascii')
+            request = "{} {} HTTP/1.1\r\nHost: {}\r\n\r\n{}".format(args[0], url, HOST, file_data).encode('ascii')
 
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.connect((HOST, PORT))
             s.sendall(request)
-            data = s.recv(8196)
+
+            data = b''
+            i = 1
+            while True:
+                new_data = s.recv(10240)
+                time.sleep(0.000000001)
+                data += new_data
+
+                if len(data) < 10240 * i:
+                    break
+
+                i += 1
+
             s.close()
 
-            decoded_data = data.decode('ascii')
-            info = decoded_data.split('\r\n\r\n')
-            response = info[0]
-            print(response, '\n')
+            # decoded_data = data.decode('ascii')
+            info = data.split(b'\r\n\r\n')
+            response = info[0].decode('ascii')
+            status = response.split('\r\n')
+            print(request.decode('ascii'), '\n', response, '\n')
 
-            if args[0] == "GET":
+            if args[0] == "GET" and status[0] == "HTTP/1.1 200 OK":
                 received_file = info[1]
-                file = open(file_name, 'w')
+                file = open(cache_file_name, 'wb')
                 file.write(received_file)
                 file.close()
-                print(received_file)
 
+                cache.add(cache_file_name)
+                file = open('cache.txt', 'a')
+                file.write(cache_file_name + '\n')
+                file.close()
+
+                # print(received_file)
     print("=========================================================================")
