@@ -1,13 +1,17 @@
 import socket
 import os
 from _thread import *
+import random
 
 
 def accept_packet(cnx):
+    thread = 1
     while True:
         try:
             data = cnx.recv(8186)  # receive request
             if data.decode():
+                print("Request number :", thread ,"\nPACKET :\n", data.decode('ascii'), "==============================")
+                thread += 1
                 start_new_thread(ThreadedClient, (cnx, data,))
         except:
             pass
@@ -39,7 +43,7 @@ def ThreadedClient(cnx, data):
         elif msg[0].split()[0] == "POST":
             # filename = msg[0].split()[1][1:]  # get file name
             version = msg[0].split()[-1]  # get version
-            f = open("data.txt", 'wb')  # Open in binary
+            f = open(str(random.randint(0, 20)) + ".txt", 'wb')  # Open in binary
             try:
                 f.write(str.encode(msg[-1]))
                 packet = "{} 200 OK".format(version)
@@ -57,7 +61,13 @@ s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 threads = 0
 s.bind(('', 65432))
 s.listen(5)
+i = 0
 while True:
     c, addr = s.accept()
-    start_new_thread(accept_packet, (c,))
+    if c:
+        # socket timeout
+        s.settimeout(15)
+        print("connection number : ", i)
+        i = i + 1
+        start_new_thread(accept_packet, (c,))
     threads += 1
