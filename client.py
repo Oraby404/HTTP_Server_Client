@@ -54,10 +54,11 @@ for command in commands:
         if args[0] == "GET":
             request = "{} {} HTTP/1.1\r\nHost: {}\r\n\r\n".format(args[0], url, HOST).encode('ascii')
         else:
-            file = open(file_name, 'r')
+            file = open(file_name, 'rb')
             file_data = file.read()
             file.close()
-            request = "{} {} HTTP/1.1\r\nHost: {}\r\n\r\n{}".format(args[0], url, HOST, file_data).encode('ascii')
+            packet = "{} {} HTTP/1.1\r\nHost: {}\r\n\r\n".format(args[0], url, HOST)
+            request = packet.encode('ascii') + file_data
 
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.connect((HOST, PORT))
